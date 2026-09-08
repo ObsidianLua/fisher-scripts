@@ -32,6 +32,18 @@ local destroyed = false
 
 local Connections = {}
 
+--// Midnight Ocean visual palette
+local COLORS = {
+	Background = Color3.fromRGB(8, 15, 24),
+	Panel = Color3.fromRGB(13, 24, 36),
+	Control = Color3.fromRGB(22, 38, 52),
+	Accent = Color3.fromRGB(55, 180, 230),
+	Enabled = Color3.fromRGB(40, 170, 130),
+	Danger = Color3.fromRGB(180, 55, 65),
+	Text = Color3.fromRGB(240, 248, 255),
+	Muted = Color3.fromRGB(145, 170, 190),
+}
+
 --// Remove old GUI
 local oldGui = CoreGui:FindFirstChild("FisherHub")
 
@@ -92,9 +104,9 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = CoreGui
 
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 350, 0, 450)
-Main.Position = UDim2.new(0.5, -175, 0.5, -225)
-Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Main.Size = UDim2.new(0, 390, 0, 510)
+Main.Position = UDim2.new(0.5, -195, 0.5, -255)
+Main.BackgroundColor3 = COLORS.Background
 Main.BorderSizePixel = 0
 Main.Active = true
 Main.Draggable = true
@@ -104,39 +116,91 @@ local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 10)
 MainCorner.Parent = Main
 
+local OceanLayer = Instance.new("Frame")
+OceanLayer.Size = UDim2.fromScale(1, 1)
+OceanLayer.BackgroundColor3 = COLORS.Panel
+OceanLayer.BackgroundTransparency = 0.18
+OceanLayer.BorderSizePixel = 0
+OceanLayer.ZIndex = 0
+OceanLayer.Parent = Main
+Instance.new("UICorner", OceanLayer).CornerRadius = UDim.new(0, 10)
+
+local OceanGradient = Instance.new("UIGradient")
+OceanGradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 35, 55)),
+	ColorSequenceKeypoint.new(0.55, COLORS.Panel),
+	ColorSequenceKeypoint.new(1, COLORS.Background),
+})
+OceanGradient.Rotation = 35
+OceanGradient.Parent = OceanLayer
+
 --// Title
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 38)
-Title.Position = UDim2.new(0, 0, 0, 4)
+Title.Size = UDim2.new(1, -70, 0, 32)
+Title.Position = UDim2.new(0, 18, 0, 12)
 Title.BackgroundTransparency = 1
-Title.Text = "Fisher Hub"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🌊 Fisher Hub"
+Title.TextColor3 = COLORS.Accent
 Title.TextSize = 22
 Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = Main
 
 --// Credits
 local Credits = Instance.new("TextLabel")
-Credits.Size = UDim2.new(1, 0, 0, 18)
-Credits.Position = UDim2.new(0, 0, 0, 34)
+Credits.Size = UDim2.new(1, -70, 0, 18)
+Credits.Position = UDim2.new(0, 20, 0, 42)
 Credits.BackgroundTransparency = 1
 Credits.Text = "by @ItzOnlyFisher"
-Credits.TextColor3 = Color3.fromRGB(150, 150, 150)
+Credits.TextColor3 = COLORS.Muted
 Credits.TextSize = 11
 Credits.Font = Enum.Font.Gotham
+Credits.TextXAlignment = Enum.TextXAlignment.Left
 Credits.Parent = Main
+
+local Separator = Instance.new("Frame")
+Separator.Size = UDim2.new(1, -36, 0, 1)
+Separator.Position = UDim2.new(0, 18, 0, 66)
+Separator.BackgroundColor3 = COLORS.Accent
+Separator.BackgroundTransparency = 0.55
+Separator.BorderSizePixel = 0
+Separator.Parent = Main
+
+local CollapseButton = Instance.new("TextButton")
+CollapseButton.Size = UDim2.new(0, 30, 0, 28)
+CollapseButton.Position = UDim2.new(1, -46, 0, 16)
+CollapseButton.BackgroundColor3 = COLORS.Control
+CollapseButton.TextColor3 = COLORS.Text
+CollapseButton.Text = "—"
+CollapseButton.TextSize = 18
+CollapseButton.Font = Enum.Font.GothamBold
+CollapseButton.Parent = Main
+Instance.new("UICorner", CollapseButton).CornerRadius = UDim.new(0, 7)
+
+local collapsed = false
+local expandedSize = Main.Size
+table.insert(Connections, CollapseButton.MouseButton1Click:Connect(function()
+	collapsed = not collapsed
+	Main.Size = collapsed and UDim2.new(0, 390, 0, 76) or expandedSize
+	CollapseButton.Text = collapsed and "+" or "—"
+	for _, child in ipairs(Main:GetChildren()) do
+		if child ~= Title and child ~= Credits and child ~= CollapseButton and child ~= OceanLayer then
+			child.Visible = not collapsed
+		end
+	end
+end))
 
 --// UI helpers
 local function createLabel(text, y)
 	local label = Instance.new("TextLabel")
 
-	label.Size = UDim2.new(0, 125, 0, 35)
-	label.Position = UDim2.new(0, 15, 0, y)
+	label.Size = UDim2.new(0, 150, 0, 32)
+	label.Position = UDim2.new(0, 20, 0, y)
 
 	label.BackgroundTransparency = 1
 
 	label.Text = text
-	label.TextColor3 = Color3.fromRGB(230, 230, 230)
+	label.TextColor3 = COLORS.Text
 	label.TextSize = 15
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.Font = Enum.Font.Gotham
@@ -152,8 +216,8 @@ local function createButton(text, x, y, width)
 	button.Size = UDim2.new(0, width or 120, 0, 32)
 	button.Position = UDim2.new(0, x, 0, y)
 
-	button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-	button.TextColor3 = Color3.fromRGB(255, 255, 255)
+	button.BackgroundColor3 = COLORS.Control
+	button.TextColor3 = COLORS.Text
 
 	button.Text = text
 	button.TextSize = 14
@@ -162,7 +226,7 @@ local function createButton(text, x, y, width)
 	button.AutoButtonColor = true
 
 	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 6)
+	corner.CornerRadius = UDim.new(0, 7)
 	corner.Parent = button
 
 	button.Parent = Main
@@ -176,8 +240,8 @@ local function createTextBox(text, x, y, width)
 	box.Size = UDim2.new(0, width or 100, 0, 32)
 	box.Position = UDim2.new(0, x, 0, y)
 
-	box.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-	box.TextColor3 = Color3.fromRGB(255, 255, 255)
+	box.BackgroundColor3 = COLORS.Control
+	box.TextColor3 = COLORS.Text
 
 	box.Text = text
 	box.PlaceholderText = text
@@ -200,19 +264,24 @@ end
 --// NOCLIP
 --==================================================
 
-createLabel("Noclip", 65)
+local MovementHeader = createLabel("MOVEMENT", 82)
+MovementHeader.TextColor3 = COLORS.Accent
+MovementHeader.TextSize = 12
+MovementHeader.Font = Enum.Font.GothamBold
 
-local NoclipButton = createButton("OFF", 215, 65, 120)
+createLabel("Noclip", 108)
+
+local NoclipButton = createButton("OFF", 240, 108, 130)
 
 table.insert(Connections, NoclipButton.MouseButton1Click:Connect(function()
 	noclipEnabled = not noclipEnabled
 
 	if noclipEnabled then
 		NoclipButton.Text = "ON"
-		NoclipButton.BackgroundColor3 = Color3.fromRGB(60, 120, 60)
+		NoclipButton.BackgroundColor3 = COLORS.Enabled
 	else
 		NoclipButton.Text = "OFF"
-		NoclipButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+		NoclipButton.BackgroundColor3 = COLORS.Control
 
 		restoreCollision()
 	end
@@ -222,10 +291,10 @@ end))
 --// WALKSPEED
 --==================================================
 
-createLabel("WalkSpeed", 110)
+createLabel("WalkSpeed", 150)
 
-local WalkSpeedBox = createTextBox("16", 145, 110, 100)
-local WalkSpeedReset = createButton("Reset", 255, 110, 80)
+local WalkSpeedBox = createTextBox("16", 160, 150, 100)
+local WalkSpeedReset = createButton("Reset", 270, 150, 100)
 
 table.insert(Connections, WalkSpeedBox.FocusLost:Connect(function()
 	local value = tonumber(WalkSpeedBox.Text)
@@ -247,10 +316,10 @@ end))
 --// JUMP POWER
 --==================================================
 
-createLabel("JumpPower", 155)
+createLabel("JumpPower", 192)
 
-local JumpPowerBox = createTextBox("50", 145, 155, 100)
-local JumpPowerReset = createButton("Reset", 255, 155, 80)
+local JumpPowerBox = createTextBox("50", 160, 192, 100)
+local JumpPowerReset = createButton("Reset", 270, 192, 100)
 
 table.insert(Connections, JumpPowerBox.FocusLost:Connect(function()
 	local value = tonumber(JumpPowerBox.Text)
@@ -272,19 +341,19 @@ end))
 --// INFINITE JUMP
 --==================================================
 
-createLabel("Infinite Jump", 200)
+createLabel("Infinite Jump", 234)
 
-local InfiniteJumpButton = createButton("OFF", 215, 200, 120)
+local InfiniteJumpButton = createButton("OFF", 240, 234, 130)
 
 table.insert(Connections, InfiniteJumpButton.MouseButton1Click:Connect(function()
 	infiniteJumpEnabled = not infiniteJumpEnabled
 
 	if infiniteJumpEnabled then
 		InfiniteJumpButton.Text = "ON"
-		InfiniteJumpButton.BackgroundColor3 = Color3.fromRGB(60, 120, 60)
+		InfiniteJumpButton.BackgroundColor3 = COLORS.Enabled
 	else
 		InfiniteJumpButton.Text = "OFF"
-		InfiniteJumpButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+		InfiniteJumpButton.BackgroundColor3 = COLORS.Control
 	end
 end))
 
@@ -292,19 +361,47 @@ end))
 --// FLY
 --==================================================
 
-createLabel("Fly", 245)
-local FlyButton = createButton("OFF", 215, 245, 120)
+local FlightHeader = createLabel("FLIGHT", 278)
+FlightHeader.TextColor3 = COLORS.Accent
+FlightHeader.TextSize = 12
+FlightHeader.Font = Enum.Font.GothamBold
+
+createLabel("Fly", 302)
+local FlyButton = createButton("OFF", 240, 302, 130)
+
+local FlyInfoButton = createButton("ⓘ", 174, 302, 28)
+FlyInfoButton.TextSize = 16
+
+local FlyHelp = Instance.new("TextLabel")
+FlyHelp.Size = UDim2.new(0, 190, 0, 78)
+FlyHelp.Position = UDim2.new(0, 168, 0, 330)
+FlyHelp.BackgroundColor3 = COLORS.Panel
+FlyHelp.BackgroundTransparency = 0.05
+FlyHelp.TextColor3 = COLORS.Text
+FlyHelp.Text = "FLY CONTROLS\nW/A/S/D — Move\nSpace — Up\nLeft Ctrl — Down"
+FlyHelp.TextSize = 11
+FlyHelp.Font = Enum.Font.Gotham
+FlyHelp.TextXAlignment = Enum.TextXAlignment.Left
+FlyHelp.TextYAlignment = Enum.TextYAlignment.Center
+FlyHelp.Visible = false
+FlyHelp.ZIndex = 3
+FlyHelp.Parent = Main
+Instance.new("UICorner", FlyHelp).CornerRadius = UDim.new(0, 7)
+
+table.insert(Connections, FlyInfoButton.MouseButton1Click:Connect(function()
+	FlyHelp.Visible = not FlyHelp.Visible
+end))
 
 local function setFlyEnabled(enabled)
 	flyEnabled = enabled
 	local humanoid = getHumanoid()
 	if flyEnabled then
 		FlyButton.Text = "ON"
-		FlyButton.BackgroundColor3 = Color3.fromRGB(60, 120, 60)
+		FlyButton.BackgroundColor3 = COLORS.Enabled
 		if humanoid then humanoid.AutoRotate = false end
 	else
 		FlyButton.Text = "OFF"
-		FlyButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+		FlyButton.BackgroundColor3 = COLORS.Control
 		local character = Player.Character
 		local root = character and character:FindFirstChild("HumanoidRootPart")
 		if root then
@@ -323,9 +420,9 @@ end))
 --// FLY SPEED
 --==================================================
 
-createLabel("Fly Speed", 290)
-local FlySpeedBox = createTextBox(tostring(DEFAULT_FLYSPEED), 145, 290, 100)
-local FlySpeedReset = createButton("Reset", 255, 290, 80)
+createLabel("Fly Speed", 344)
+local FlySpeedBox = createTextBox(tostring(DEFAULT_FLYSPEED), 160, 344, 100)
+local FlySpeedReset = createButton("Reset", 270, 344, 100)
 
 table.insert(Connections, FlySpeedBox.FocusLost:Connect(function()
 	local value = tonumber(FlySpeedBox.Text)
@@ -346,8 +443,13 @@ end))
 --// HIDE UI KEY
 --==================================================
 
-createLabel("Hide UI Key", 335)
-local HideKeyButton = createButton(hideKey.Name, 215, 335, 120)
+local SettingsHeader = createLabel("SETTINGS", 390)
+SettingsHeader.TextColor3 = COLORS.Accent
+SettingsHeader.TextSize = 12
+SettingsHeader.Font = Enum.Font.GothamBold
+
+createLabel("Hide UI Key", 414)
+local HideKeyButton = createButton(hideKey.Name, 240, 414, 130)
 
 table.insert(Connections, HideKeyButton.MouseButton1Click:Connect(function()
 	waitingForKey = true
@@ -358,8 +460,8 @@ end))
 --// DESTROY GUI
 --==================================================
 
-local DestroyButton = createButton("DESTROY GUI", 15, 395, 320)
-DestroyButton.BackgroundColor3 = Color3.fromRGB(130, 45, 45)
+local DestroyButton = createButton("DESTROY GUI", 20, 462, 350)
+DestroyButton.BackgroundColor3 = COLORS.Danger
 
 --==================================================
 --// NOCLIP LOOP
