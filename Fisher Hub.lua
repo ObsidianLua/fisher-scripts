@@ -11,13 +11,20 @@ local Player = Players.LocalPlayer
 --// Defaults
 local DEFAULT_WALKSPEED = 16
 local DEFAULT_JUMPPOWER = 50
+local DEFAULT_FLYSPEED = 50
 
 --// Settings
 local noclipEnabled = false
 local infiniteJumpEnabled = false
+local flyEnabled = false
 
 local walkSpeed = DEFAULT_WALKSPEED
 local jumpPower = DEFAULT_JUMPPOWER
+local flySpeed = DEFAULT_FLYSPEED
+
+local flyKeys = {
+	W = false, A = false, S = false, D = false, Space = false, LeftControl = false
+}
 
 local hideKey = Enum.KeyCode.RightShift
 local waitingForKey = false
@@ -85,8 +92,8 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = CoreGui
 
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 350, 0, 360)
-Main.Position = UDim2.new(0.5, -175, 0.5, -180)
+Main.Size = UDim2.new(0, 350, 0, 450)
+Main.Position = UDim2.new(0.5, -175, 0.5, -225)
 Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 Main.BorderSizePixel = 0
 Main.Active = true
@@ -282,12 +289,65 @@ table.insert(Connections, InfiniteJumpButton.MouseButton1Click:Connect(function(
 end))
 
 --==================================================
+--// FLY
+--==================================================
+
+createLabel("Fly", 245)
+local FlyButton = createButton("OFF", 215, 245, 120)
+
+local function setFlyEnabled(enabled)
+	flyEnabled = enabled
+	local humanoid = getHumanoid()
+	if flyEnabled then
+		FlyButton.Text = "ON"
+		FlyButton.BackgroundColor3 = Color3.fromRGB(60, 120, 60)
+		if humanoid then humanoid.AutoRotate = false end
+	else
+		FlyButton.Text = "OFF"
+		FlyButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+		local character = Player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		if root then
+			root.AssemblyLinearVelocity = Vector3.zero
+			root.AssemblyAngularVelocity = Vector3.zero
+		end
+		if humanoid then humanoid.AutoRotate = true end
+	end
+end
+
+table.insert(Connections, FlyButton.MouseButton1Click:Connect(function()
+	setFlyEnabled(not flyEnabled)
+end))
+
+--==================================================
+--// FLY SPEED
+--==================================================
+
+createLabel("Fly Speed", 290)
+local FlySpeedBox = createTextBox(tostring(DEFAULT_FLYSPEED), 145, 290, 100)
+local FlySpeedReset = createButton("Reset", 255, 290, 80)
+
+table.insert(Connections, FlySpeedBox.FocusLost:Connect(function()
+	local value = tonumber(FlySpeedBox.Text)
+	if value and value >= 0 then
+		flySpeed = value
+		FlySpeedBox.Text = tostring(value)
+	else
+		FlySpeedBox.Text = tostring(flySpeed)
+	end
+end))
+
+table.insert(Connections, FlySpeedReset.MouseButton1Click:Connect(function()
+	flySpeed = DEFAULT_FLYSPEED
+	FlySpeedBox.Text = tostring(DEFAULT_FLYSPEED)
+end))
+
+--==================================================
 --// HIDE UI KEY
 --==================================================
 
-createLabel("Hide UI Key", 245)
-
-local HideKeyButton = createButton(hideKey.Name, 215, 245, 120)
+createLabel("Hide UI Key", 335)
+local HideKeyButton = createButton(hideKey.Name, 215, 335, 120)
 
 table.insert(Connections, HideKeyButton.MouseButton1Click:Connect(function()
 	waitingForKey = true
@@ -298,7 +358,7 @@ end))
 --// DESTROY GUI
 --==================================================
 
-local DestroyButton = createButton("DESTROY GUI", 15, 305, 320)
+local DestroyButton = createButton("DESTROY GUI", 15, 395, 320)
 DestroyButton.BackgroundColor3 = Color3.fromRGB(130, 45, 45)
 
 --==================================================
@@ -342,16 +402,49 @@ table.insert(Connections, UserInputService.JumpRequest:Connect(function()
 end))
 
 --==================================================
+--// FLY LOOP
+--==================================================
+
+table.insert(Connections, RunService.RenderStepped:Connect(function()
+	if destroyed or not flyEnabled then return end
+	local character = Player.Character
+	local humanoid = getHumanoid()
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	local camera = workspace.CurrentCamera
+	if not character or not humanoid or not root or not camera then return end
+	humanoid.AutoRotate = false
+	local look = camera.CFrame.LookVector
+	local right = camera.CFrame.RightVector
+	local flatLook = Vector3.new(look.X, 0, look.Z)
+	local flatRight = Vector3.new(right.X, 0, right.Z)
+	if flatLook.Magnitude > 0 then flatLook = flatLook.Unit end
+	if flatRight.Magnitude > 0 then flatRight = flatRight.Unit end
+	local direction = Vector3.zero
+	if flyKeys.W then direction += flatLook end
+	if flyKeys.S then direction -= flatLook end
+	if flyKeys.D then direction += flatRight end
+	if flyKeys.A then direction -= flatRight end
+	if flyKeys.Space then direction += Vector3.new(0, 1, 0) end
+	if flyKeys.LeftControl then direction -= Vector3.new(0, 1, 0) end
+	if direction.Magnitude > 0 then direction = direction.Unit end
+	root.AssemblyLinearVelocity = direction * flySpeed
+	root.AssemblyAngularVelocity = Vector3.zero
+end))
+
+--==================================================
 --// KEYBIND
 --==================================================
 
 table.insert(Connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
-	if destroyed then
-		return
-	end
-
-	if gameProcessed then
-		return
+	if destroyed then return end
+	if gameProcessed then return end
+	if input.UserInputType == Enum.UserInputType.Keyboard then
+		if input.KeyCode == Enum.KeyCode.W then flyKeys.W = true
+		elseif input.KeyCode == Enum.KeyCode.A then flyKeys.A = true
+		elseif input.KeyCode == Enum.KeyCode.S then flyKeys.S = true
+		elseif input.KeyCode == Enum.KeyCode.D then flyKeys.D = true
+		elseif input.KeyCode == Enum.KeyCode.Space then flyKeys.Space = true
+		elseif input.KeyCode == Enum.KeyCode.LeftControl then flyKeys.LeftControl = true end
 	end
 
 	if waitingForKey and input.UserInputType == Enum.UserInputType.Keyboard then
@@ -364,6 +457,16 @@ table.insert(Connections, UserInputService.InputBegan:Connect(function(input, ga
 	if input.KeyCode == hideKey then
 		Main.Visible = not Main.Visible
 	end
+end))
+
+table.insert(Connections, UserInputService.InputEnded:Connect(function(input)
+	if input.UserInputType ~= Enum.UserInputType.Keyboard then return end
+	if input.KeyCode == Enum.KeyCode.W then flyKeys.W = false
+	elseif input.KeyCode == Enum.KeyCode.A then flyKeys.A = false
+	elseif input.KeyCode == Enum.KeyCode.S then flyKeys.S = false
+	elseif input.KeyCode == Enum.KeyCode.D then flyKeys.D = false
+	elseif input.KeyCode == Enum.KeyCode.Space then flyKeys.Space = false
+	elseif input.KeyCode == Enum.KeyCode.LeftControl then flyKeys.LeftControl = false end
 end))
 
 --==================================================
@@ -380,6 +483,7 @@ local function setupCharacter(character)
 	humanoid.WalkSpeed = walkSpeed
 	humanoid.UseJumpPower = true
 	humanoid.JumpPower = jumpPower
+	humanoid.AutoRotate = not flyEnabled
 end
 
 if Player.Character then
@@ -395,6 +499,7 @@ table.insert(Connections, Player.CharacterAdded:Connect(setupCharacter))
 table.insert(Connections, DestroyButton.MouseButton1Click:Connect(function()
 	noclipEnabled = false
 	infiniteJumpEnabled = false
+	setFlyEnabled(false)
 	waitingForKey = false
 
 	setWalkSpeed(DEFAULT_WALKSPEED)
