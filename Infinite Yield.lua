@@ -4,7 +4,7 @@ local accessOk, allowedUserIds = pcall(function()
 end)
 
 if not accessOk or type(allowedUserIds) ~= "table" or not allowedUserIds[game:GetService("Players").LocalPlayer.UserId] then
-	return
+	error("You are not whitelisted. Contact itzonlyfisher on Discord for help.")
 end
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
