@@ -5,22 +5,22 @@ local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 
 local player = Players.LocalPlayer
-local baseUrl = "https://raw.githubusercontent.com/lifedupey/fisher-scripts/main/"
+local baseUrl = "https://raw.githubusercontent.com/ObsidianLua/fisher-scripts/main/"
 
 local scriptGroups = {
     {
         name = "Sync Scripts",
         scripts = {
-            {name = "Sync V2 - R6", file = "Fisher%20-%20Sync%20V2%20-%20R6.lua"},
-            {name = "Sync V2 - R15", file = "Fisher%20-%20Sync%20V2%20-%20R15.lua"},
-            {name = "Duo Sync - R6", file = "Fisher%20-%20Duo%20Sync%20-%20R6.lua"},
-            {name = "Duo Sync - R15", file = "Fisher%20-%20Duo%20Sync%20-%20R15.lua"},
-            {name = "Low Sync - R6", file = "Fisher%20-%20Low%20Sync%20-%20R6.lua"},
-            {name = "Low Sync - R15", file = "Fisher%20-%20Low%20Sync%20-%20R15.lua"},
-            {name = "Close Sync - R6", file = "Fisher%20-%20Close%20Sync%20-%20R6.lua"},
-            {name = "Close Sync - R15", file = "Fisher%20-%20Close%20Sync%20-%20R15.lua"},
-            {name = "Solo Loop - R6", file = "Fisher%20-%20Solo%20Loop%20-%20R6.lua"},
-            {name = "Solo Loop - R15", file = "Fisher%20-%20Solo%20Loop%20-%20R15.lua"},
+            {name = "Bang V2 - R6", file = "Bang%20V2%20-%20R6.lua"},
+            {name = "Bang V2 - R15", file = "Bang%20V2%20-%20R15.lua"},
+            {name = "Get Banged - R6", file = "Get%20Banged%20-%20R6.lua"},
+            {name = "Get Banged - R15", file = "Get%20Banged%20-%20R15.lua"},
+            {name = "Suck - R6", file = "Suck%20-%20R6.lua"},
+            {name = "Suck - R15", file = "Suck%20-%20R15.lua"},
+            {name = "Get Suc - R6", file = "Get%20Suc%20-%20R6.lua"},
+            {name = "Get Suc - R15", file = "Get%20Suc%20-%20R15.lua"},
+            {name = "Jerk - R6", file = "Jerk%20-%20R6.lua"},
+            {name = "Jerk - R15", file = "Jerk%20-%20R15.lua"},
         },
     },
     {
